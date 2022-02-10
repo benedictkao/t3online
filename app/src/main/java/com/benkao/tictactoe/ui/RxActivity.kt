@@ -10,9 +10,6 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 import javax.inject.Inject
 import kotlin.reflect.KClass
-import kotlin.reflect.full.createType
-import kotlin.reflect.full.isSubtypeOf
-import kotlin.reflect.full.memberFunctions
 
 abstract class RxActivity: DaggerAppCompatActivity() {
     @Inject lateinit var providerFactory: ViewModelProviderFactory
@@ -21,8 +18,7 @@ abstract class RxActivity: DaggerAppCompatActivity() {
 
     private val createSubject = BehaviorSubject.createDefault(false)
     private val startSubject = BehaviorSubject.createDefault(false)
-    private val onStopDisposables: CompositeDisposable = CompositeDisposable()
-    private val onDestroyDisposables: CompositeDisposable = CompositeDisposable()
+    private val disposables: CompositeDisposable = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,58 +26,64 @@ abstract class RxActivity: DaggerAppCompatActivity() {
         createSubject.onNext(true)
     }
 
+    /**
+     * Returns an object that extends RxViewModel based on the KClass input and
+     * subscribes to its' annotated Completables via the Activity lifecycle
+     */
     protected fun <T: RxViewModel> bindViewModel(clazz: KClass<T>): T {
         val viewModel = ViewModelProvider(this, providerFactory)
             .get(clazz.java)
-
-        observeCompletable(createToDestroyStream(viewModel), onDestroyDisposables)
-        observeCompletable(startToStopStream(viewModel), onDestroyDisposables)
-
+        initStreams(viewModel)
         return viewModel
     }
 
-    private fun <T: RxViewModel> getCompletables(viewModel: T, ) =
-        Observable.fromIterable(viewModel::class.memberFunctions)
-            .filter { it.returnType.isSubtypeOf(Completable::class.createType()) }
-            .map { Pair(it.annotations, it.call(viewModel) as Completable) }
-
-    private fun observeCompletable(completable: Completable, disposables: CompositeDisposable) {
-        disposables.add(completable
-            .subscribe({  }, { e -> e.printStackTrace() })
+    private fun <T: RxViewModel> initStreams(viewModel: T) {
+        subscribeToCompletable(
+            observeLifecycleStream(
+                viewModel.createToDestroyCompletables,
+                createSubject
+            )
+        )
+        subscribeToCompletable(
+            observeLifecycleStream(
+                viewModel.startToStopCompletables,
+                startSubject
+            )
         )
     }
 
-    private fun <T: RxViewModel> createToDestroyStream(viewModel: T) =
-        getCompletables(viewModel)
-            .filter { it.first.any { it is CreateToDestroy } }
-            .map { it.second }
-            .toList()
-            .flatMapCompletable { completables ->
-                createSubject.switchMapCompletable { created ->
-                    if (created) {
-                        Observable.fromIterable(completables)
-                            .doOnNext { observeCompletable(it, onDestroyDisposables) }
-                            .ignoreElements()
-                    } else {
-                        Completable.fromAction { onDestroyDisposables.dispose() }
-                    }
-                }
-            }
+    /**
+     * Returns an observable stream for the activity's create lifecycle.
+     *
+     * true = created, false = destroyed
+     */
+    fun observeCreateLifecycle() = createSubject.hide()
 
-    private fun <T: RxViewModel> startToStopStream(viewModel: T) =
-        getCompletables(viewModel)
-            .filter { it.first.any { it is StartToStop } }
-            .map { it.second }
-            .toList()
-            .flatMapCompletable { completables ->
-                startSubject.switchMapCompletable { started ->
-                    if (started) {
-                        Observable.fromIterable(completables)
-                            .doOnNext { observeCompletable(it, onStopDisposables) }
-                            .ignoreElements()
-                    } else {
-                        Completable.fromAction { onStopDisposables.clear() }
-                    }
+    /**
+     * Returns an observable stream for the activity's start lifecycle.
+     *
+     * true = started, false = stopped
+     */
+    fun observeStartLifecycle() = startSubject.hide()
+
+    private fun subscribeToCompletable(completable: Completable) {
+        disposables.add(completable
+            .subscribe({  }, { e -> e.printStackTrace() })
+        )
+        observeCreateLifecycle()
+    }
+
+    private fun observeLifecycleStream(
+        completables: List<Completable>,
+        lifecycleEvent: Observable<Boolean>
+    ): Completable =
+        lifecycleEvent
+            .switchMapCompletable {
+                if (it) {
+                    Observable.fromIterable(completables)
+                        .flatMapCompletable { it }
+                } else {
+                    Completable.complete()
                 }
             }
 
@@ -97,6 +99,7 @@ abstract class RxActivity: DaggerAppCompatActivity() {
 
     override fun onDestroy() {
         createSubject.onNext(false)
+        disposables.dispose()
         super.onDestroy()
     }
 }

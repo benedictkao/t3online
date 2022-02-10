@@ -4,12 +4,15 @@ import com.benkao.tictactoe.ui.CreateToDestroy
 import com.benkao.tictactoe.ui.RxViewModel
 import com.benkao.tictactoe.ui.StartToStop
 import io.reactivex.rxjava3.core.Completable
+import io.reactivex.rxjava3.core.Observable
 
 class LoginViewModel: RxViewModel() {
 
     @CreateToDestroy
-    internal fun test() = Completable.fromAction { System.out.println("Create to destroy") }
+    fun test() = Completable.fromAction { println("Create to Destroy") }
 
     @StartToStop
-    internal fun hi() = Completable.fromAction { System.out.println("Start To Stop") }
+    fun hi() = Observable.just("Start To Stop")
+        .doOnNext { println(it) }
+        .ignoreElements()
 }
