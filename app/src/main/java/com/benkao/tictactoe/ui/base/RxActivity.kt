@@ -38,8 +38,8 @@ abstract class RxActivity: DaggerAppCompatActivity(), RxLifecycleSource {
         return viewModel
     }
 
-    private fun bindViews(viewFinder: RxViewFinder?) {
-        viewFinder?.run {
+    private fun bindViews(viewFinder: RxViewFinder) {
+        viewFinder.run {
             viewFinderDisposable = observeViews()
                 .doOnNext { it.bind(this@RxActivity) }
                 .subscribe()

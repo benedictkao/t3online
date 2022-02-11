@@ -1,6 +1,9 @@
 package com.benkao.tictactoe.ui.base
 
 import androidx.lifecycle.ViewModel
+import com.benkao.tictactoe.ui.base.annotations.CreateToDestroy
+import com.benkao.tictactoe.ui.base.annotations.InitToClear
+import com.benkao.tictactoe.ui.base.annotations.StartToStop
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -9,7 +12,7 @@ import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberFunctions
 
 abstract class RxViewModel(
-    val viewFinder: RxViewFinder? = null
+    val viewFinder: RxViewFinder
 ) : ViewModel() {
     private val mutableCreateToDestroyList = mutableListOf<Completable>()
     private val mutableStartToStopList = mutableListOf<Completable>()
@@ -17,6 +20,8 @@ abstract class RxViewModel(
 
     init {
         val memberFunctions = Class.forName(javaClass.name).kotlin.memberFunctions
+
+        val mutableInitToClearList = mutableListOf<Completable>()
 
         memberFunctions.forEach {
             it.run {
@@ -36,9 +41,21 @@ abstract class RxViewModel(
                     }?.let {
                         mutableStartToStopList.add(it.call(this@RxViewModel) as Completable)
                     }
+
+                    // add init to clear functions
+                    takeIf {
+                        annotations.any {it is InitToClear }
+                    }?.let {
+                        mutableInitToClearList.add(it.call(this@RxViewModel) as Completable)
+                    }
                 }
             }
         }
+
+        subscribeToCompletable(
+            Observable.fromIterable(mutableInitToClearList)
+                .flatMapCompletable { it }
+        )
     }
 
     /**

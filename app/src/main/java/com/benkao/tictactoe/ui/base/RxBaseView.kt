@@ -6,7 +6,6 @@ import android.widget.TextView
 import androidx.annotation.CallSuper
 import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
-import androidx.annotation.IntDef
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
@@ -15,11 +14,16 @@ import io.reactivex.rxjava3.subjects.PublishSubject
 
 open class RxBaseView(@IdRes val resId: Int) {
     private val visibility = MutableLiveData(View.GONE)
+    private val enabled = MutableLiveData<Boolean>()
 
     private val clickSubject = PublishSubject.create<Boolean>()
 
     fun setVisibility(visible: Boolean) {
         this.visibility.value = if (visible) View.VISIBLE else View.GONE
+    }
+
+    fun setEnabled(enabled: Boolean) {
+        this.enabled.value = enabled
     }
 
     fun observeClick(): Observable<Boolean> = clickSubject.hide()
@@ -30,12 +34,17 @@ open class RxBaseView(@IdRes val resId: Int) {
             this@RxBaseView.visibility.observe(activity) {
                 it?.let { visibility = it }
             }
+            this@RxBaseView.enabled.observe(activity) {
+                it?.let { isEnabled = it }
+            }
             setOnClickListener { clickSubject.onNext(true) }
         }
     }
 }
 
 open class RxView(resId: Int): RxBaseView(resId)
+
+open class RxButton(resId: Int): RxView(resId)
 
 open class RxTextView(resId: Int): RxView(resId) {
     private val text = MutableLiveData<String>()
@@ -83,18 +92,5 @@ class RxRecyclerView<VH: RecyclerView.ViewHolder>(
             adapter = this@RxRecyclerView.adapter
             layoutManager = this@RxRecyclerView.layoutManager
         }
-    }
-}
-
-@IntDef(
-    ViewType.VIEW,
-    ViewType.TEXT_VIEW,
-    ViewType.IMAGE_VIEW
-)
-annotation class ViewType {
-    companion object {
-        const val VIEW = 0
-        const val TEXT_VIEW = 1
-        const val IMAGE_VIEW = 2
     }
 }
