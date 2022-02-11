@@ -2,7 +2,7 @@ package com.benkao.tictactoe.di.core
 
 import com.benkao.tictactoe.ui.login.LoginActivity
 import com.benkao.tictactoe.di.login.LoginModule
-import com.benkao.tictactoe.ui.RxActivity
+import com.benkao.tictactoe.ui.base.RxActivity
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
 

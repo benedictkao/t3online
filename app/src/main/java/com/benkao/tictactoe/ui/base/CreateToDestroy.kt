@@ -1,6 +1,6 @@
-package com.benkao.tictactoe.ui
+package com.benkao.tictactoe.ui.base
 
 @MustBeDocumented
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class StartToStop
+annotation class CreateToDestroy

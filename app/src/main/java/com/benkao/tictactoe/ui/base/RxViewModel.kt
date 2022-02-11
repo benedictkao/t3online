@@ -1,4 +1,4 @@
-package com.benkao.tictactoe.ui
+package com.benkao.tictactoe.ui.base
 
 import androidx.lifecycle.ViewModel
 import io.reactivex.rxjava3.core.Completable
@@ -8,7 +8,9 @@ import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberFunctions
 
-abstract class RxViewModel : ViewModel() {
+abstract class RxViewModel(
+    val viewFinder: RxViewFinder? = null
+) : ViewModel() {
     private val mutableCreateToDestroyList = mutableListOf<Completable>()
     private val mutableStartToStopList = mutableListOf<Completable>()
     private val disposables: CompositeDisposable = CompositeDisposable()
@@ -40,19 +42,19 @@ abstract class RxViewModel : ViewModel() {
     }
 
     /**
-     * Subscribes this object's completable streams to Activity lifecycle
+     * Subscribes this object's completable streams to the lifecycle source
      */
-    fun observeActivityLifecycle(rxActivity: RxActivity) {
+    fun observeActivityLifecycle(lifecycleSource: RxLifecycleSource) {
         subscribeToCompletable(
             observeLifecycleStream(
                 mutableCreateToDestroyList,
-                rxActivity.observeCreateLifecycle()
+                lifecycleSource.observeCreateLifecycle()
             )
         )
         subscribeToCompletable(
             observeLifecycleStream(
                 mutableStartToStopList,
-                rxActivity.observeStartLifecycle()
+                lifecycleSource.observeStartLifecycle()
             )
         )
     }

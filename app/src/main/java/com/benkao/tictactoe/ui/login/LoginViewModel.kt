@@ -1,8 +1,8 @@
 package com.benkao.tictactoe.ui.login
 
-import com.benkao.tictactoe.ui.CreateToDestroy
-import com.benkao.tictactoe.ui.RxViewModel
-import com.benkao.tictactoe.ui.StartToStop
+import com.benkao.tictactoe.ui.base.CreateToDestroy
+import com.benkao.tictactoe.ui.base.RxViewModel
+import com.benkao.tictactoe.ui.base.StartToStop
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Observable
 

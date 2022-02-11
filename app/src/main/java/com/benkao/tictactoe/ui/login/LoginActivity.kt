@@ -2,7 +2,7 @@ package com.benkao.tictactoe.ui.login
 
 import android.os.Bundle
 import com.benkao.tictactoe.R
-import com.benkao.tictactoe.ui.RxActivity
+import com.benkao.tictactoe.ui.base.RxActivity
 
 class LoginActivity : RxActivity() {
     private lateinit var viewModel: LoginViewModel
