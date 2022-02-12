@@ -1,18 +1,17 @@
 package com.benkao.tictactoe.ui.login
 
+import com.benkao.annotations.InitToClear
+import com.benkao.annotations.LifecycleViewModel
 import com.benkao.tictactoe.R
-import com.benkao.tictactoe.ui.base.RxTextView
-import com.benkao.tictactoe.ui.base.RxViewFinder
-import com.benkao.tictactoe.ui.base.annotations.CreateToDestroy
-import com.benkao.tictactoe.ui.base.RxViewModel
-import com.benkao.tictactoe.ui.base.annotations.InitToClear
-import com.benkao.tictactoe.ui.base.annotations.StartToStop
-import io.reactivex.rxjava3.core.Completable
-import io.reactivex.rxjava3.core.Observable
+import com.benkao.tictactoe.ui.base.*
 
+@LifecycleViewModel
 class LoginViewModel(
     viewFinder: RxViewFinder
 ): RxViewModel(viewFinder) {
+
+    override val streamsContainer: LifecycleStreamsContainer
+        get() = LoginViewModel_StreamsContainer.init(this)
 
     @InitToClear
     fun initToClear() = viewFinder
@@ -22,12 +21,4 @@ class LoginViewModel(
             it.setText("Hello")
         }
         .ignoreElement()
-
-    @CreateToDestroy
-    fun test() = Completable.fromAction { println("Create to Destroy") }
-
-    @StartToStop
-    fun hi() = Observable.just("Start To Stop")
-        .doOnNext { println(it) }
-        .ignoreElements()
 }

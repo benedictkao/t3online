@@ -5,10 +5,19 @@ import androidx.recyclerview.widget.RecyclerView
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.subjects.ReplaySubject
+import kotlin.ClassCastException
 import kotlin.reflect.KClass
 import kotlin.reflect.full.primaryConstructor
 
 interface RxViewFinder {
+
+    /**
+     * Method that returns a RxView type object that models a view's state.
+     *
+     * For RecyclerView, use getRecyclerView(Int, RecyclerView.Adapter,
+     * RecyclerView.LayoutManager) instead
+     */
+    fun getRxView(@IdRes id: Int): Single<RxView>
 
     /**
      * Method that returns a RxView type object that models a view's state.
@@ -28,7 +37,7 @@ interface RxViewFinder {
         @IdRes id: Int,
         adapter: RecyclerView.Adapter<VH>,
         layoutManager: RecyclerView.LayoutManager
-    ): Single<RxRecyclerView<VH>>
+    ): Single<RxRecyclerView<*>>
 
     /**
      * Provides a stream of RxBaseView type objects. Replays the stream on subscribe.
@@ -40,17 +49,27 @@ class RxViewFinderImpl: RxViewFinder {
     private val views = mutableMapOf<Int, RxBaseView>()
     private val viewsSubject = ReplaySubject.create<RxBaseView>()
 
+    override fun getRxView(id: Int): Single<RxView> {
+        val view = views.getOrPut(id) {
+            RxView(id)
+        } as RxView
+        return Single.just(view)
+    }
+
     @Suppress("UNCHECKED_CAST")
     override fun <T : RxView> getRxView(
         id: Int,
         clazz: KClass<T>
     ): Single<T> {
-        val view = views.getOrPut(id) {
-            clazz.primaryConstructor?.call(id)
-                .apply { viewsSubject.onNext(this) }
-                ?: RxView(id)
-        } as T
-        return Single.just(view)
+        return try {
+            val view = views.getOrPut(id) {
+                clazz.primaryConstructor!!.call(id)
+                    .apply { viewsSubject.onNext(this) }
+            } as T
+            Single.just(view)
+        } catch (e: ClassCastException) {
+            Single.error(e)
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -58,11 +77,12 @@ class RxViewFinderImpl: RxViewFinder {
         id: Int,
         adapter: RecyclerView.Adapter<VH>,
         layoutManager: RecyclerView.LayoutManager
-    ): Single<RxRecyclerView<VH>> {
+    ): Single<RxRecyclerView<*>> {
         val recyclerView = views.getOrPut(id) {
             RxRecyclerView(id, adapter, layoutManager)
-        } as RxRecyclerView<VH>
-        return Single.just(recyclerView)
+        }
+        return if (recyclerView is RxRecyclerView<*>) Single.just(recyclerView)
+        else Single.error(ClassCastException())
     }
 
     override fun observeViews(): Observable<RxBaseView> = viewsSubject.hide()
