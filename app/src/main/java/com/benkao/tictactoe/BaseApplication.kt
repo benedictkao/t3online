@@ -1,4 +1,4 @@
-package com.benkao.tictactoe.ui.base
+package com.benkao.tictactoe
 
 import com.benkao.tictactoe.di.core.DaggerAppComponent
 import dagger.android.AndroidInjector

@@ -8,7 +8,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 abstract class RxViewModel(
     val viewFinder: RxViewFinder
 ) : ViewModel() {
-    abstract val streamsContainer: LifecycleStreamsContainer
+    abstract val streams: LifecycleStreams
 
     private val disposables: CompositeDisposable = CompositeDisposable()
 
@@ -24,11 +24,11 @@ abstract class RxViewModel(
      */
     fun observeActivityLifecycle(lifecycleSource: RxLifecycleSource) {
         subscribeStreamsToLifecycleEvent(
-            streamsContainer.getCreateToDestroyStreams(),
+            streams.createToDestroy,
             lifecycleSource.observeCreateLifecycle()
         )
         subscribeStreamsToLifecycleEvent(
-            streamsContainer.getStartToStopStreams(),
+            streams.startToStop,
             lifecycleSource.observeStartLifecycle()
         )
     }

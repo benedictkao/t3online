@@ -10,8 +10,8 @@ class LoginViewModel(
     viewFinder: RxViewFinder
 ): RxViewModel(viewFinder) {
 
-    override val streamsContainer: LifecycleStreamsContainer
-        get() = LoginViewModel_StreamsContainer.init(this)
+    override val streams: LifecycleStreams
+        get() = LoginViewModel_StreamsInitializer.start(this)
 
     @InitToClear
     fun initToClear() = viewFinder
