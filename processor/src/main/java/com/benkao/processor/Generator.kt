@@ -12,10 +12,7 @@ import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.Processor
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.SourceVersion
-import javax.lang.model.element.Element
-import javax.lang.model.element.ElementKind
-import javax.lang.model.element.ExecutableElement
-import javax.lang.model.element.TypeElement
+import javax.lang.model.element.*
 import javax.tools.Diagnostic
 
 @AutoService(Processor::class)
@@ -93,7 +90,7 @@ class Generator: AbstractProcessor() {
         val stringBuilders = Array(3) { StringBuilder() }
         element.enclosedElements.forEach { enclosed ->
             enclosed.getAnnotation(InitToClear::class.java)
-                ?.takeIf { isCompletableMethod(enclosed) }
+                ?.takeIf { isPublicCompletableMethod(enclosed) }
                 ?.let {
                     stringBuilders[0].append(
                         "$VIEWMODEL_OBJECT_NAME.${enclosed.simpleName}(),"
@@ -101,7 +98,7 @@ class Generator: AbstractProcessor() {
                 }
 
             enclosed.getAnnotation(CreateToDestroy::class.java)
-                ?.takeIf { isCompletableMethod(enclosed) }
+                ?.takeIf { isPublicCompletableMethod(enclosed) }
                 ?.let {
                     stringBuilders[1].append(
                         "$VIEWMODEL_OBJECT_NAME.${enclosed.simpleName}(),"
@@ -109,7 +106,7 @@ class Generator: AbstractProcessor() {
                 }
 
             enclosed.getAnnotation(StartToStop::class.java)
-                ?.takeIf { isCompletableMethod(enclosed) }
+                ?.takeIf { isPublicCompletableMethod(enclosed) }
                 ?.let {
                     stringBuilders[2].append(
                         "$VIEWMODEL_OBJECT_NAME.${enclosed.simpleName}(),"
@@ -119,8 +116,9 @@ class Generator: AbstractProcessor() {
         return stringBuilders
     }
 
-    private fun isCompletableMethod(element: Element): Boolean =
+    private fun isPublicCompletableMethod(element: Element): Boolean =
         element.kind == ElementKind.METHOD &&
+                element.modifiers.contains(Modifier.PUBLIC) &&
                 processingEnv.typeUtils.isSameType(
                     (element as ExecutableElement).returnType,
                     processingEnv.elementUtils

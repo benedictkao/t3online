@@ -3,7 +3,7 @@ package com.benkao.tictactoe.di.login
 import androidx.lifecycle.ViewModel
 import com.benkao.tictactoe.ui.login.LoginViewModel
 import com.benkao.tictactoe.di.core.ViewModelKey
-import com.benkao.tictactoe.ui.base.RxViewFinder
+import com.benkao.tictactoe.ui.base.RxViewCollector
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
@@ -15,8 +15,8 @@ object LoginModule {
     @IntoMap
     @ViewModelKey(LoginViewModel::class)
     fun provideLoginViewModel(
-        viewFinder: RxViewFinder
+        viewCollector: RxViewCollector
     ): ViewModel {
-        return LoginViewModel(viewFinder)
+        return LoginViewModel(viewCollector)
     }
 }

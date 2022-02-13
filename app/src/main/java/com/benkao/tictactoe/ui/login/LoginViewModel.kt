@@ -12,20 +12,24 @@ import io.reactivex.rxjava3.core.Single
 
 @LifecycleViewModel
 class LoginViewModel(
-    viewFinder: RxViewFinder
-): RxViewModel(viewFinder) {
+    viewCollector: RxViewCollector
+): RxViewModel(viewCollector) {
 
     override val streams: LifecycleStreams
         get() = LoginViewModel_LifecycleStreamsFactory.create(this)
 
+    private val usernameText = viewCollector.addView(R.id.input_email_text, RxEditText::class)
+    private val passwordText = viewCollector.addView(R.id.input_password_text, RxEditText::class)
+    private val loginButton = viewCollector.addView(R.id.login_button, RxButton::class)
+    private val errorText = viewCollector.addView(R.id.login_error_text, RxTextView::class)
+
     @InitToClear
     fun observeLogin(): Completable = Single.zip(
-        viewFinder.getRxView(R.id.input_email_text, RxEditText::class),
-        viewFinder.getRxView(R.id.input_password_text, RxEditText::class),
-        viewFinder.getRxView(R.id.login_button, RxButton::class),
-        viewFinder.getRxView(R.id.login_error_text, RxTextView::class)
-    ) { userName, password, button, error
-        -> LoginViews(userName, password, button, error) }
+        usernameText,
+        passwordText,
+        loginButton,
+        errorText
+    ) { userName, password, button, error -> LoginViews(userName, password, button, error) }
         .flatMapCompletable { views ->
             views.loginButton.observeClick()
                 .switchMapCompletable {
@@ -45,10 +49,10 @@ class LoginViewModel(
         }
 
     @StartToStop
-    fun observeTextClick(): Completable = Single.zip(
-        viewFinder.getRxView(R.id.input_email_text),
-        viewFinder.getRxView(R.id.input_password_text),
-        viewFinder.getRxView(R.id.login_error_text)
+    fun observeTextInputClick(): Completable = Single.zip(
+        usernameText,
+        passwordText,
+        errorText
     ) { username, password, error -> Triple(username, password, error) }
         .flatMapCompletable { texts ->
             Observable.mergeArray(

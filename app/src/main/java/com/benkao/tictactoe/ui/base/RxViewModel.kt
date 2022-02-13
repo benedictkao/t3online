@@ -10,7 +10,7 @@ import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.subjects.PublishSubject
 
 abstract class RxViewModel(
-    val viewFinder: RxViewFinder
+    val viewStream: RxViewStream? = null
 ) : ViewModel() {
     abstract val streams: LifecycleStreams
 

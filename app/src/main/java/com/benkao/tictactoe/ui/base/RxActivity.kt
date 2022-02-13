@@ -9,7 +9,6 @@ import com.benkao.tictactoe.utils.subscribeAndAddTo
 import dagger.android.support.DaggerAppCompatActivity
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
-import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 import javax.inject.Inject
 import kotlin.reflect.KClass
@@ -42,7 +41,7 @@ abstract class RxActivity: DaggerAppCompatActivity(), RxLifecycleSource {
             .ignoreElements()
             .subscribeAndAddTo(compositeDisposable)
 
-        bindViews(viewModel.viewFinder)
+        bindViews(viewModel.viewStream)
 
         return viewModel
     }
@@ -59,9 +58,9 @@ abstract class RxActivity: DaggerAppCompatActivity(), RxLifecycleSource {
             }
     }
 
-    private fun bindViews(viewFinder: RxViewFinder) {
-        viewFinder.run {
-            observeViews()
+    private fun bindViews(viewStream: RxViewStream?) {
+        viewStream?.run {
+            observeStream()
                 .doOnNext { it.bind(this@RxActivity) }
                 .ignoreElements()
                 .subscribeAndAddTo(compositeDisposable)
