@@ -5,7 +5,6 @@ import androidx.recyclerview.widget.RecyclerView
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.subjects.ReplaySubject
-import kotlin.ClassCastException
 import kotlin.reflect.KClass
 import kotlin.reflect.full.primaryConstructor
 

@@ -1,63 +1,66 @@
 package com.benkao.tictactoe.ui.base
 
 import androidx.lifecycle.ViewModel
+import com.benkao.tictactoe.utils.subscribeAndAddTo
+import com.benkao.tictactoe.utils.subscribeBy
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.rxjava3.subjects.PublishSubject
 
 abstract class RxViewModel(
     val viewFinder: RxViewFinder
 ) : ViewModel() {
     abstract val streams: LifecycleStreams
 
-    private val disposables: CompositeDisposable = CompositeDisposable()
+    private var bindDisposable: Disposable? = null
+    private val compositeDisposable = CompositeDisposable()
+    private val bindSubject = PublishSubject.create<Boolean>()
 
-    fun subscribeUntilClear(completables: List<Completable>) {
-        subscribeToCompletable(
-            Observable.fromIterable(completables)
-                .flatMapCompletable { it }
-        )
+    init {
+        bindSubject.firstOrError()
+            .flatMapCompletable {
+                Observable.fromIterable(streams.initToClear)
+                    .flatMapCompletable { it }
+            }.subscribeAndAddTo(compositeDisposable)
     }
 
     /**
      * Subscribes this object's completable streams to the lifecycle source
      */
     fun observeActivityLifecycle(lifecycleSource: RxLifecycleSource) {
-        subscribeStreamsToLifecycleEvent(
-            streams.createToDestroy,
-            lifecycleSource.observeCreateLifecycle()
-        )
-        subscribeStreamsToLifecycleEvent(
-            streams.startToStop,
-            lifecycleSource.observeStartLifecycle()
-        )
+        bindSubject.onNext(true)
+
+        Completable.mergeArray(
+            observeLifecycleEvent(
+                streams.createToDestroy,
+                lifecycleSource.observeCreateLifecycle()
+            ),
+            observeLifecycleEvent(
+                streams.startToStop,
+                lifecycleSource.observeStartLifecycle()
+            )
+        ).subscribeBy(bindDisposable)
     }
 
-    private fun subscribeToCompletable(completable: Completable) {
-        disposables.add(
-            completable.subscribe({  }, { e -> e.printStackTrace() })
-        )
-    }
-
-    private fun subscribeStreamsToLifecycleEvent(
+    private fun observeLifecycleEvent(
         completables: List<Completable>,
         lifecycleEvent: Observable<Boolean>
-    ) {
-        subscribeToCompletable(
-            lifecycleEvent
-                .switchMapCompletable {
-                    if (it) {
-                        Observable.fromIterable(completables)
-                            .flatMapCompletable { it }
-                    } else {
-                        Completable.complete()
-                    }
+    ): Completable =
+        lifecycleEvent
+            .switchMapCompletable { event ->
+                if (event) {
+                    Observable.fromIterable(completables)
+                        .flatMapCompletable { it }
+                } else {
+                    Completable.complete()
                 }
-        )
-    }
+            }
 
     override fun onCleared() {
-        disposables.dispose()
+        bindDisposable?.dispose()
+        compositeDisposable.dispose()
         super.onCleared()
     }
 }

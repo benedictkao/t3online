@@ -23,8 +23,8 @@ class Generator: AbstractProcessor() {
     companion object {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
         const val VIEWMODEL_OBJECT_NAME = "viewModel"
-        const val STREAMS_HANDLER_CLASS_SUFFIX = "_StreamsInitializer"
-        const val STREAMS_HANDLER_BIND_METHOD_NAME = "start"
+        const val STREAMS_HANDLER_CLASS_SUFFIX = "LifecycleStreamsFactory"
+        const val STREAMS_HANDLER_BIND_METHOD_NAME = "create"
 
         const val ERROR_DIRECTORY_GENERATION = "Could not generate directory"
 
@@ -65,16 +65,33 @@ class Generator: AbstractProcessor() {
     }
 
     private fun processLifecycleViewModel(vmElement: Element) {
-        val className = vmElement.simpleName.toString()
+        val vmName = vmElement.simpleName.toString()
         val pack = processingEnv.elementUtils.getPackageOf(vmElement).toString()
 
-        val fileName = "$className$STREAMS_HANDLER_CLASS_SUFFIX"
+        val fileName = "${vmName}_$STREAMS_HANDLER_CLASS_SUFFIX"
         val fileBuilder = FileSpec.builder(pack, fileName)
+        val vm = ParameterSpec.builder(
+            VIEWMODEL_OBJECT_NAME,
+            ClassName(pack, vmName)
+        ).build()
+        val stringBuilders = buildStringBuilders(vmElement)
 
+        val classBuilder = TypeSpec.objectBuilder(fileName)
+            .addFunction(FunSpec.builder(STREAMS_HANDLER_BIND_METHOD_NAME)
+                .returns(ClassName(STREAMS_MODEL_PACKAGE, STREAMS_MODEL_NAME))
+                .addParameter(vm)
+                .addStatement("return $STREAMS_MODEL_NAME(listOf(${stringBuilders[0]}),listOf(${stringBuilders[1]}),listOf(${stringBuilders[2]}))")
+                .build())
+
+        val file = fileBuilder.addType(classBuilder.build()).build()
+        val kaptKotlinGeneratedDir = processingEnv.options[KAPT_KOTLIN_GENERATED_OPTION_NAME]
+        kaptKotlinGeneratedDir?.let { file.writeTo(File(it)) }
+            ?: printErrorMessage(ERROR_DIRECTORY_GENERATION)
+    }
+
+    private fun buildStringBuilders(element: Element): Array<StringBuilder> {
         val stringBuilders = Array(3) { StringBuilder() }
-
-        vmElement.enclosedElements.forEach { enclosed ->
-
+        element.enclosedElements.forEach { enclosed ->
             enclosed.getAnnotation(InitToClear::class.java)
                 ?.takeIf { isCompletableMethod(enclosed) }
                 ?.let {
@@ -99,24 +116,7 @@ class Generator: AbstractProcessor() {
                     )
                 }
         }
-
-        val vm = ParameterSpec.builder(
-            VIEWMODEL_OBJECT_NAME,
-            vmElement.asType().asTypeName()
-        ).build()
-
-        val classBuilder = TypeSpec.objectBuilder(fileName)
-            .addFunction(FunSpec.builder(STREAMS_HANDLER_BIND_METHOD_NAME)
-                .returns(ClassName(STREAMS_MODEL_PACKAGE, STREAMS_MODEL_NAME))
-                .addParameter(vm)
-                .addStatement("$VIEWMODEL_OBJECT_NAME.subscribeUntilClear(listOf(${stringBuilders[0]}))")
-                .addStatement("return $STREAMS_MODEL_NAME(listOf(${stringBuilders[1]}),listOf(${stringBuilders[2]}))")
-                .build())
-
-        val file = fileBuilder.addType(classBuilder.build()).build()
-        val kaptKotlinGeneratedDir = processingEnv.options[KAPT_KOTLIN_GENERATED_OPTION_NAME]
-        kaptKotlinGeneratedDir?.let { file.writeTo(File(it)) }
-            ?: printErrorMessage(ERROR_DIRECTORY_GENERATION)
+        return stringBuilders
     }
 
     private fun isCompletableMethod(element: Element): Boolean =

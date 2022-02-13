@@ -1,9 +1,14 @@
 package com.benkao.tictactoe.ui.login
 
+import com.benkao.annotations.CreateToDestroy
 import com.benkao.annotations.InitToClear
 import com.benkao.annotations.LifecycleViewModel
+import com.benkao.annotations.StartToStop
 import com.benkao.tictactoe.R
 import com.benkao.tictactoe.ui.base.*
+import com.benkao.tictactoe.utils.StringUtils
+import io.reactivex.rxjava3.core.Completable
+import io.reactivex.rxjava3.core.Single
 
 @LifecycleViewModel
 class LoginViewModel(
@@ -11,14 +16,43 @@ class LoginViewModel(
 ): RxViewModel(viewFinder) {
 
     override val streams: LifecycleStreams
-        get() = LoginViewModel_StreamsInitializer.start(this)
+        get() = LoginViewModel_LifecycleStreamsFactory.create(this)
 
     @InitToClear
-    fun initToClear() = viewFinder
-        .getRxView(R.id.login_error_text, RxTextView::class)
-        .doOnSuccess {
-            it.setVisibility(true)
-            it.setText("Hello")
+    fun observeLogin(): Completable = Single.zip(
+        viewFinder.getRxView(R.id.input_email_text, RxEditText::class),
+        viewFinder.getRxView(R.id.input_password_text, RxEditText::class),
+        viewFinder.getRxView(R.id.login_button, RxButton::class),
+        viewFinder.getRxView(R.id.login_error_text, RxTextView::class)
+    ) { userName, password, button, error
+        -> LoginViews(userName, password, button, error) }
+        .flatMapCompletable { views ->
+            views.loginButton.observeClick()
+                .switchMapCompletable {
+                    Single.zip(
+                        views.userName.observeText().first(StringUtils.EMPTY),
+                        views.password.observeText().first(StringUtils.EMPTY))
+                    { userName, password -> Pair(userName, password) }
+                        .doOnSuccess {
+                            views.errorText.setVisible(true)
+                            views.errorText.setText(
+                                "UserName is \"${it.first}\""
+                            )
+                        }
+                        .ignoreElement()
+                }
         }
-        .ignoreElement()
+
+    @StartToStop
+    fun startToStop(): Completable = Completable.fromAction { println("StartToStop") }
+
+    @CreateToDestroy
+    fun createToDestroy(): Completable = Completable.fromAction { println("CreateToDestroy") }
 }
+
+data class LoginViews(
+    val userName: RxEditText,
+    val password: RxEditText,
+    val loginButton: RxButton,
+    val errorText: RxTextView
+)
