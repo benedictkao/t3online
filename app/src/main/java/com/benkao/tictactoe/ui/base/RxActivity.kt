@@ -1,10 +1,14 @@
 package com.benkao.tictactoe.ui.base
 
+import android.content.Context
 import android.os.Bundle
+import android.view.inputmethod.InputMethodManager
 import androidx.lifecycle.ViewModelProvider
 import com.benkao.tictactoe.di.core.ViewModelProviderFactory
+import com.benkao.tictactoe.utils.subscribeAndAddTo
 import dagger.android.support.DaggerAppCompatActivity
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 import javax.inject.Inject
@@ -15,7 +19,7 @@ abstract class RxActivity: DaggerAppCompatActivity(), RxLifecycleSource {
 
     protected abstract var layout: Int
 
-    private var viewFinderDisposable: Disposable? = null
+    private var compositeDisposable = CompositeDisposable()
     private val createSubject = BehaviorSubject.createDefault(false)
     private val startSubject = BehaviorSubject.createDefault(false)
 
@@ -33,16 +37,34 @@ abstract class RxActivity: DaggerAppCompatActivity(), RxLifecycleSource {
             .get(clazz.java)
 
         viewModel.observeActivityLifecycle(this)
+        viewModel.hideKeyboardObservable
+            .doOnNext { hideKeyboard() }
+            .ignoreElements()
+            .subscribeAndAddTo(compositeDisposable)
+
         bindViews(viewModel.viewFinder)
 
         return viewModel
     }
 
+    /**
+     * Hides the soft keyboard
+     */
+    fun hideKeyboard() {
+        (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
+            ?.run {
+                currentFocus?.windowToken?.let {
+                    hideSoftInputFromWindow(it, InputMethodManager.HIDE_NOT_ALWAYS)
+                }
+            }
+    }
+
     private fun bindViews(viewFinder: RxViewFinder) {
         viewFinder.run {
-            viewFinderDisposable = observeViews()
+            observeViews()
                 .doOnNext { it.bind(this@RxActivity) }
-                .subscribe()
+                .ignoreElements()
+                .subscribeAndAddTo(compositeDisposable)
         }
     }
 
@@ -62,7 +84,7 @@ abstract class RxActivity: DaggerAppCompatActivity(), RxLifecycleSource {
 
     override fun onDestroy() {
         createSubject.onNext(false)
-        viewFinderDisposable?.dispose()
+        compositeDisposable.dispose()
         super.onDestroy()
     }
 }

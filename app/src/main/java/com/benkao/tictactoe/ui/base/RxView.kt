@@ -41,25 +41,10 @@ open class RxEditText(resId: Int): RxTextView(resId) {
     fun observeText(): Observable<String> = readText.hide()
 
     override fun bind(activity: AppCompatActivity) {
-        //TODO: TextWatcher not triggering
-
         super.bind(activity)
         activity.findViewById<EditText>(resId).run {
             addTextChangedListener {
-                object : TextWatcher {
-                    override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                        println("before text changed")
-                    }
-
-                    override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                        println("on text changed")
-                    }
-
-                    override fun afterTextChanged(text: Editable?) {
-                        println("after text changed")
-                        readText.onNext(text?.toString() ?: StringUtils.EMPTY)
-                    }
-                }
+                readText.onNext(text?.toString() ?: StringUtils.EMPTY)
             }
         }
     }

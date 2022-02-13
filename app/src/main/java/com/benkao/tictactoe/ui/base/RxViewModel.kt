@@ -17,6 +17,8 @@ abstract class RxViewModel(
     private var bindDisposable: Disposable? = null
     private val compositeDisposable = CompositeDisposable()
     private val bindSubject = PublishSubject.create<Boolean>()
+    private val hideKeyboardSubject = PublishSubject.create<Boolean>()
+    val hideKeyboardObservable: Observable<Boolean> get() = hideKeyboardSubject.hide()
 
     init {
         bindSubject.firstOrError()
@@ -42,6 +44,13 @@ abstract class RxViewModel(
                 lifecycleSource.observeStartLifecycle()
             )
         ).subscribeBy(bindDisposable)
+    }
+
+    /**
+     * Hides the keyboard of the RxActivity bound to this object
+     */
+    protected fun hideKeyboard() {
+        hideKeyboardSubject.onNext(true)
     }
 
     private fun observeLifecycleEvent(

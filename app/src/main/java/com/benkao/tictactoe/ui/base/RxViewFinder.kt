@@ -60,6 +60,7 @@ class RxViewFinderImpl: RxViewFinder {
         id: Int,
         clazz: KClass<T>
     ): Single<T> {
+        // TODO: Make thread-safe
         return try {
             val view = views.getOrPut(id) {
                 clazz.primaryConstructor!!.call(id)
