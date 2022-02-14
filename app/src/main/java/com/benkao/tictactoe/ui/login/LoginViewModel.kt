@@ -24,7 +24,7 @@ class LoginViewModel(
     private val errorText = viewCollector.addView(R.id.login_error_text, RxTextView::class)
 
     @InitToClear
-    fun observeLogin(): Completable = Single.zip(
+    fun observeLoginClick(): Completable = Single.zip(
         usernameText,
         passwordText,
         loginButton,
@@ -33,39 +33,63 @@ class LoginViewModel(
         .flatMapCompletable { views ->
             views.loginButton.observeClick()
                 .switchMapCompletable {
-                    Single.zip(
-                        views.userName.observeText().first(StringUtils.EMPTY),
-                        views.password.observeText().first(StringUtils.EMPTY))
-                    { userName, password -> Pair(userName, password) }
-                        .doOnSuccess {
-                            views.errorText.setVisible(true)
-                            views.errorText.setText(
-                                "UserName is \"${it.first}\". Password is \"${it.second}\""
-                            )
-                            hideKeyboard()
-                        }
-                        .ignoreElement()
+                    handleButtonClick(views)
                 }
         }
 
+    private fun handleButtonClick(
+        views: LoginViews
+    ): Completable = Single.zip(
+        views.username.observeText().first(StringUtils.EMPTY),
+        views.password.observeText().first(StringUtils.EMPTY))
+    { userName, password -> Pair(userName, password) }
+        .doOnSuccess { hideKeyboard() }
+        .flatMapCompletable {
+            getInputError(it)
+                ?.run { showErrorMessage(views.errorText, this) }
+                ?:  // send http request
+                showErrorMessage(
+                    views.errorText,
+                    "UserName is \"${it.first}\". Password is \"${it.second}\""
+                )
+        }
+
+    private fun showErrorMessage(
+        errorTV: RxTextView,
+        message: String
+    ): Completable = Completable.fromAction {
+        errorTV.run {
+            setVisible(true)
+            setText(message)
+        }
+    }
+
+    private fun getInputError(loginPair: Pair<String, String>): String?
+            = when {
+        (loginPair.first.isBlank()) -> "Username can't be blank"
+        (loginPair.second.isBlank()) -> "Password can't be empty"
+        else -> null
+    }
+
     @StartToStop
-    fun observeTextInputClick(): Completable = Single.zip(
+    fun observeInputTextFocus(): Completable = Single.zip(
         usernameText,
         passwordText,
         errorText
     ) { username, password, error -> Triple(username, password, error) }
         .flatMapCompletable { texts ->
             Observable.mergeArray(
-                texts.first.observeClick(),
-                texts.second.observeClick()
-            ).doOnNext { texts.third.setVisible(false) }
+                texts.first.observeFocus(),
+                texts.second.observeFocus()
+            ).filter { it }
+                .doOnNext { texts.third.setVisible(false) }
                 .ignoreElements()
         }
 
 }
 
 data class LoginViews(
-    val userName: RxEditText,
+    val username: RxEditText,
     val password: RxEditText,
     val loginButton: RxButton,
     val errorText: RxTextView

@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.benkao.tictactoe.di.core.ViewModelProviderFactory
 import com.benkao.tictactoe.utils.subscribeAndAddTo
 import dagger.android.support.DaggerAppCompatActivity
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.BehaviorSubject
@@ -37,6 +38,7 @@ abstract class RxActivity: DaggerAppCompatActivity(), RxLifecycleSource {
 
         viewModel.observeActivityLifecycle(this)
         viewModel.hideKeyboardObservable
+            .observeOn(AndroidSchedulers.mainThread())
             .doOnNext { hideKeyboard() }
             .ignoreElements()
             .subscribeAndAddTo(compositeDisposable)

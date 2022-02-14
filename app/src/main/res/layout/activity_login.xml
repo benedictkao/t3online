@@ -10,6 +10,7 @@
 
     <com.google.android.material.textfield.TextInputLayout
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:id="@+id/input_email_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -19,12 +20,14 @@
             android:layout_height="wrap_content"
             android:hint="@string/hint_email_address"
             android:imeOptions="actionNext"
-            android:inputType="text" />
+            android:inputType="text"
+            android:maxLength="20" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:id="@+id/input_password_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp">
@@ -35,7 +38,8 @@
             android:layout_height="wrap_content"
             android:hint="@string/hint_password"
             android:imeOptions="actionDone"
-            android:inputType="textPassword" />
+            android:inputType="textPassword"
+            android:maxLength="20" />
 
     </com.google.android.material.textfield.TextInputLayout>
 

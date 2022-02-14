@@ -21,7 +21,22 @@ class RxViewCollector: RxViewStream {
     private val viewsSubject = ReplaySubject.create<RxBaseView>()
 
     /**
-     * Method that puts a RxView type object into the view finder.
+     * Method that puts a RxView type object into the view finder and returns it.
+     *
+     * For RxRecyclerView, use putRxRecyclerView(Int, RecyclerView.Adapter,
+     * RecyclerView.LayoutManager) instead
+     */
+    fun addView(id: Int): Single<RxView> {
+        RxView(id).let {
+            viewsSubject.onNext(it)
+            views[id] = Pair(RxView::class, it)
+            return Single.just(it)
+        }
+    }
+
+    /**
+     * Method that puts an object that extends RxView into the view finder and returns it.
+     * Returns the class type based on the KClass input
      *
      * For RxRecyclerView, use putRxRecyclerView(Int, RecyclerView.Adapter,
      * RecyclerView.LayoutManager) instead

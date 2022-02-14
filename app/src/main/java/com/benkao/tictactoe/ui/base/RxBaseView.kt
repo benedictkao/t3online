@@ -1,21 +1,19 @@
 package com.benkao.tictactoe.ui.base
 
 import android.view.View
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.annotation.CallSuper
-import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MutableLiveData
-import androidx.recyclerview.widget.RecyclerView
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.subjects.BehaviorSubject
 import io.reactivex.rxjava3.subjects.PublishSubject
 
 abstract class RxBaseView(@IdRes val resId: Int) {
     private val visibility = MutableLiveData<Int>()
     private val enabled = MutableLiveData<Boolean>()
 
+    private val focusSubject = BehaviorSubject.create<Boolean>()
     private val clickSubject = PublishSubject.create<Boolean>()
 
     fun setVisible(visible: Boolean) {
@@ -26,6 +24,8 @@ abstract class RxBaseView(@IdRes val resId: Int) {
         this.enabled.value = enabled
     }
 
+    fun observeFocus(): Observable<Boolean> = focusSubject.distinctUntilChanged().hide()
+    
     fun observeClick(): Observable<Boolean> = clickSubject.hide()
 
     @CallSuper
@@ -37,6 +37,7 @@ abstract class RxBaseView(@IdRes val resId: Int) {
             this@RxBaseView.enabled.observe(activity) {
                 it?.let { isEnabled = it }
             }
+            setOnFocusChangeListener { _, focus -> focusSubject.onNext(focus) }
             setOnClickListener { clickSubject.onNext(true) }
         }
     }
