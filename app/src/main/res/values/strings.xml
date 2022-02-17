@@ -1,6 +1,9 @@
 <resources>
-    <string name="app_name">TicTacToe</string>
+    <string name="app_name">TicTacToe Online</string>
     <string name="hint_password">Password</string>
     <string name="hint_email_address">Email Address</string>
     <string name="login">Login</string>
+
+    <!-- Temp String Resource -->
+    <string name="find_game_temp">Find Game</string>
 </resources>

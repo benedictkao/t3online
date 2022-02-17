@@ -6,9 +6,10 @@
     tools:context=".ui.home.HomeActivity">
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/play_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="Find Game"/>
+        android:text="@string/find_game_temp"/>
 
 </FrameLayout>
