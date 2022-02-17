@@ -4,14 +4,18 @@ import com.benkao.annotations.InitToClear
 import com.benkao.annotations.LifecycleViewModel
 import com.benkao.annotations.StartToStop
 import com.benkao.tictactoe.R
+import com.benkao.tictactoe.network.retrofit.service.LoginService
 import com.benkao.tictactoe.ui.base.*
+import com.benkao.tictactoe.ui.home.HomeActivity
 import com.benkao.tictactoe.utils.StringUtils
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 
 @LifecycleViewModel
 class LoginViewModel(
+    private val service: LoginService,
     viewCollector: RxViewCollector
 ): RxViewModel(viewCollector) {
 
@@ -47,11 +51,17 @@ class LoginViewModel(
         .flatMapCompletable {
             getInputError(it)
                 ?.run { showErrorMessage(views.errorText, this) }
-                ?:  // send http request
-                showErrorMessage(
-                    views.errorText,
-                    "UserName is \"${it.first}\". Password is \"${it.second}\""
-                )
+                ?: service.postLogin(1)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .doOnSuccess {
+                        //navigate to home screen
+                        val activityIntent = ActivityIntent.Builder()
+                            .clazz(HomeActivity::class)
+                            .build()
+                        startActivity(activityIntent)
+                    }
+                    .doOnError { showErrorMessage(views.errorText, "Login failed!") }
+                    .ignoreElement()
         }
 
     private fun showErrorMessage(

@@ -1,16 +1,18 @@
 package com.benkao.tictactoe.di.core
 
+import com.benkao.tictactoe.di.modules.HomeModule
 import com.benkao.tictactoe.ui.login.LoginActivity
-import com.benkao.tictactoe.di.login.LoginModule
-import com.benkao.tictactoe.ui.base.RxActivity
+import com.benkao.tictactoe.di.modules.LoginModule
+import com.benkao.tictactoe.ui.home.HomeActivity
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
 
 @Module
 abstract class ActivityBuilderModule {
 
-    abstract fun contributeRxActivity(): RxActivity
+    @ContributesAndroidInjector(modules = [LoginModule::class])
+    abstract fun contributeLoginActivity(): LoginActivity
 
     @ContributesAndroidInjector(modules = [LoginModule::class])
-    abstract fun contributeMainActivity(): LoginActivity
+    abstract fun contributeHomeActivity(): HomeActivity
 }

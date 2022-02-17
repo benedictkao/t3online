@@ -1,6 +1,7 @@
 package com.benkao.tictactoe.ui.base
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.inputmethod.InputMethodManager
 import androidx.lifecycle.ViewModelProvider
@@ -37,21 +38,41 @@ abstract class RxActivity: DaggerAppCompatActivity(), RxLifecycleSource {
             .get(clazz.java)
 
         viewModel.observeActivityLifecycle(this)
-        viewModel.hideKeyboardObservable
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnNext { hideKeyboard() }
-            .ignoreElements()
-            .subscribeAndAddTo(compositeDisposable)
+        observeViewModel(viewModel)
 
         bindViews(viewModel.viewStream)
 
         return viewModel
     }
 
+    private fun observeViewModel(viewModel: RxViewModel) {
+        viewModel.hideKeyboardObservable
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnNext { hideKeyboard() }
+            .ignoreElements()
+            .subscribeAndAddTo(compositeDisposable)
+        viewModel.startActivityObservable
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnNext { startActivity(it) }
+            .ignoreElements()
+            .subscribeAndAddTo(compositeDisposable)
+    }
+
+    private fun startActivity(activityIntent: ActivityIntent) {
+        activityIntent.run {
+            clazz?.let {
+                val intent = Intent(this@RxActivity, it.java)
+                flags?.let { intent.addFlags(it) }
+                data?.run { intent.putExtra(first, second) }
+                startActivity(intent)
+            }
+        }
+    }
+
     /**
      * Hides the soft keyboard
      */
-    fun hideKeyboard() {
+    private fun hideKeyboard() {
         (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
             ?.run {
                 currentFocus?.windowToken?.let {

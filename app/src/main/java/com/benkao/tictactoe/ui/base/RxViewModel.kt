@@ -1,5 +1,7 @@
 package com.benkao.tictactoe.ui.base
 
+import android.app.Activity
+import android.content.Intent
 import androidx.lifecycle.ViewModel
 import com.benkao.tictactoe.utils.subscribeAndAddTo
 import com.benkao.tictactoe.utils.subscribeBy
@@ -12,19 +14,23 @@ import io.reactivex.rxjava3.subjects.PublishSubject
 abstract class RxViewModel(
     val viewStream: RxViewStream? = null
 ) : ViewModel() {
-    abstract val streams: LifecycleStreams
+    open val streams: LifecycleStreams? = null
 
     private var bindDisposable: Disposable? = null
     private val compositeDisposable = CompositeDisposable()
     private val bindSubject = PublishSubject.create<Boolean>()
     private val hideKeyboardSubject = PublishSubject.create<Boolean>()
-    val hideKeyboardObservable: Observable<Boolean> get() = hideKeyboardSubject.hide()
+    private val startActivitySubject = PublishSubject.create<ActivityIntent>()
+    val hideKeyboardObservable: Observable<Boolean> = hideKeyboardSubject.hide()
+    val startActivityObservable: Observable<ActivityIntent> = startActivitySubject.hide()
 
     init {
         bindSubject.firstOrError()
             .flatMapCompletable {
-                Observable.fromIterable(streams.initToClear)
-                    .flatMapCompletable { it }
+                streams?.run {
+                    Observable.fromIterable(initToClear)
+                        .flatMapCompletable { it }
+                } ?: Completable.complete()
             }.subscribeAndAddTo(compositeDisposable)
     }
 
@@ -34,16 +40,18 @@ abstract class RxViewModel(
     fun observeActivityLifecycle(lifecycleSource: RxLifecycleSource) {
         bindSubject.onNext(true)
 
-        Completable.mergeArray(
-            observeLifecycleEvent(
-                streams.createToDestroy,
-                lifecycleSource.observeCreateLifecycle()
-            ),
-            observeLifecycleEvent(
-                streams.startToStop,
-                lifecycleSource.observeStartLifecycle()
-            )
-        ).subscribeBy(bindDisposable)
+        streams?.run {
+            Completable.mergeArray(
+                observeLifecycleEvent(
+                    createToDestroy,
+                    lifecycleSource.observeCreateLifecycle()
+                ),
+                observeLifecycleEvent(
+                    startToStop,
+                    lifecycleSource.observeStartLifecycle()
+                )
+            ).subscribeBy(bindDisposable)
+        }
     }
 
     /**
@@ -51,6 +59,10 @@ abstract class RxViewModel(
      */
     protected fun hideKeyboard() {
         hideKeyboardSubject.onNext(true)
+    }
+
+    protected fun startActivity(activityIntent: ActivityIntent) {
+        startActivitySubject.onNext(activityIntent)
     }
 
     private fun observeLifecycleEvent(

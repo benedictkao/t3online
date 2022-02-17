@@ -8,5 +8,5 @@ dependencyResolutionManagement {
 }
 rootProject.name = "TicTacToe"
 include ':app'
-include ':processor'
-include ':annotations'
+include ':lifecyclestreams-processor'
+include ':lifecyclestreams'

@@ -1,4 +1,4 @@
-package com.benkao.tictactoe.retrofit.api
+package com.benkao.tictactoe.network.retrofit.api
 
 import io.reactivex.rxjava3.core.Single
 import retrofit2.http.POST

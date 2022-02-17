@@ -4,7 +4,6 @@ import androidx.recyclerview.widget.RecyclerView
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.subjects.ReplaySubject
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.full.primaryConstructor
 
@@ -17,7 +16,6 @@ interface RxViewStream {
 }
 
 class RxViewCollector: RxViewStream {
-    private val views = ConcurrentHashMap<Int, Pair<KClass<*>, RxBaseView>>()
     private val viewsSubject = ReplaySubject.create<RxBaseView>()
 
     /**
@@ -29,7 +27,6 @@ class RxViewCollector: RxViewStream {
     fun addView(id: Int): Single<RxView> {
         RxView(id).let {
             viewsSubject.onNext(it)
-            views[id] = Pair(RxView::class, it)
             return Single.just(it)
         }
     }
@@ -44,7 +41,6 @@ class RxViewCollector: RxViewStream {
     fun <T : RxView> addView(id: Int, clazz: KClass<T>): Single<T> {
         clazz.primaryConstructor!!.call(id).let {
             viewsSubject.onNext(it)
-            views[id] = Pair(clazz, it)
             return Single.just(it)
         }
     }
@@ -59,7 +55,6 @@ class RxViewCollector: RxViewStream {
     ): Single<RxRecyclerView<VH>> {
         RxRecyclerView(id, adapter, layoutManager).let {
             viewsSubject.onNext(it)
-            views[id] = Pair(RxRecyclerView::class, it)
             return Single.just(it)
         }
     }

@@ -2,6 +2,7 @@ package com.benkao.tictactoe.di.core
 
 import android.app.Application
 import com.benkao.tictactoe.BaseApplication
+import com.benkao.tictactoe.di.modules.AppModule
 import dagger.BindsInstance
 import dagger.Component
 import dagger.android.AndroidInjector

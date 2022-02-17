@@ -1,6 +1,7 @@
 package com.benkao.tictactoe.di.core
 
 import androidx.lifecycle.ViewModelProvider
+import com.benkao.tictactoe.di.core.ViewModelProviderFactory
 import dagger.Binds
 import dagger.Module
 

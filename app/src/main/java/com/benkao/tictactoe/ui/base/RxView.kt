@@ -1,7 +1,5 @@
 package com.benkao.tictactoe.ui.base
 
-import android.text.Editable
-import android.text.TextWatcher
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
@@ -11,7 +9,6 @@ import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.MutableLiveData
 import com.benkao.tictactoe.utils.StringUtils
 import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 
 open class RxView(resId: Int): RxBaseView(resId)
