@@ -24,13 +24,15 @@ class WebSocketProviderImpl(
     }
 
     private var webSocket: WebSocket? = null
-    private val state = BehaviorSubject.create<Int>()
+    private val state = BehaviorSubject.createDefault(WebSocketState.DISCONNECTED)
 
     override fun observeState(): Observable<Int> = state.hide()
 
     override fun connect() {
-        state.onNext(WebSocketState.CONNECTING)
-        webSocket = client.newWebSocket(request, this)
+        if (state.value == WebSocketState.DISCONNECTED) {
+            state.onNext(WebSocketState.CONNECTING)
+            webSocket = client.newWebSocket(request, this)
+        }
     }
 
     override fun disconnect() {
