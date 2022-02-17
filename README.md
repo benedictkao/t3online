@@ -1,6 +1,7 @@
 # TicTacToe
 
 Infrastructure: MVVM
+  
 Modules:
 * app
 * lifecyclestreams (lifecycle streams annotations)
