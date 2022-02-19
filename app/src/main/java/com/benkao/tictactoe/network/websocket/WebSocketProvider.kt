@@ -29,14 +29,17 @@ class WebSocketProviderImpl(
     override fun observeState(): Observable<Int> = state.hide()
 
     override fun connect() {
-        if (state.value == WebSocketState.DISCONNECTED) {
+        webSocket ?: let {
             state.onNext(WebSocketState.CONNECTING)
             webSocket = client.newWebSocket(request, this)
         }
     }
 
     override fun disconnect() {
-        webSocket?.run { close(NORMAL_CLOSURE_STATUS, DEFAULT_CLOSE_MESSAGE) }
+        webSocket?.run {
+            close(NORMAL_CLOSURE_STATUS, DEFAULT_CLOSE_MESSAGE)
+            webSocket = null
+        }
     }
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
