@@ -19,7 +19,7 @@ import javax.tools.Diagnostic
 class Generator: AbstractProcessor() {
     companion object {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
-        const val VIEWMODEL_OBJECT_NAME = "viewModel"
+        const val VIEW_MODEL_OBJECT_NAME = "viewModel"
         const val STREAMS_HANDLER_CLASS_SUFFIX = "LifecycleStreamsFactory"
         const val STREAMS_HANDLER_BIND_METHOD_NAME = "create"
 
@@ -68,7 +68,7 @@ class Generator: AbstractProcessor() {
         val fileName = "${vmName}_$STREAMS_HANDLER_CLASS_SUFFIX"
         val fileBuilder = FileSpec.builder(pack, fileName)
         val vm = ParameterSpec.builder(
-            VIEWMODEL_OBJECT_NAME,
+            VIEW_MODEL_OBJECT_NAME,
             ClassName(pack, vmName)
         ).build()
         val stringBuilders = buildStringBuilders(vmElement)
@@ -93,7 +93,7 @@ class Generator: AbstractProcessor() {
                 ?.takeIf { isPublicCompletableMethod(enclosed) }
                 ?.let {
                     stringBuilders[0].append(
-                        "$VIEWMODEL_OBJECT_NAME.${enclosed.simpleName}(),"
+                        "$VIEW_MODEL_OBJECT_NAME.${enclosed.simpleName}(),"
                     )
                 }
 
@@ -101,7 +101,7 @@ class Generator: AbstractProcessor() {
                 ?.takeIf { isPublicCompletableMethod(enclosed) }
                 ?.let {
                     stringBuilders[1].append(
-                        "$VIEWMODEL_OBJECT_NAME.${enclosed.simpleName}(),"
+                        "$VIEW_MODEL_OBJECT_NAME.${enclosed.simpleName}(),"
                     )
                 }
 
@@ -109,7 +109,7 @@ class Generator: AbstractProcessor() {
                 ?.takeIf { isPublicCompletableMethod(enclosed) }
                 ?.let {
                     stringBuilders[2].append(
-                        "$VIEWMODEL_OBJECT_NAME.${enclosed.simpleName}(),"
+                        "$VIEW_MODEL_OBJECT_NAME.${enclosed.simpleName}(),"
                     )
                 }
         }
