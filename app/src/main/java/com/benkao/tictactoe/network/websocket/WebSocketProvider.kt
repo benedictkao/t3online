@@ -8,6 +8,8 @@ interface WebSocketProvider {
 
     fun observeState(): Observable<Int>
 
+    fun observeConnection(): Observable<Boolean>
+
     fun connect()
 
     fun disconnect()
@@ -24,13 +26,16 @@ class WebSocketProviderImpl(
     }
 
     private var webSocket: WebSocket? = null
-    private val state = BehaviorSubject.createDefault(WebSocketState.DISCONNECTED)
+    private val state = BehaviorSubject.createDefault(WebSocketState.CLOSED)
 
     override fun observeState(): Observable<Int> = state.hide()
 
+    override fun observeConnection(): Observable<Boolean> =
+        state.map { it == WebSocketState.OPEN }
+            .distinctUntilChanged()
+
     override fun connect() {
         webSocket ?: let {
-            state.onNext(WebSocketState.CONNECTING)
             webSocket = client.newWebSocket(request, this)
         }
     }
@@ -43,18 +48,22 @@ class WebSocketProviderImpl(
     }
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
-        state.onNext(WebSocketState.CONNECTED)
+        state.onNext(WebSocketState.OPEN)
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
         // handle message
+        println(text)
     }
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-        state.onNext(WebSocketState.DISCONNECTED)
+        this.webSocket = null
+        state.onNext(WebSocketState.CLOSED)
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-        state.onNext(WebSocketState.DISCONNECTED)
+        this.webSocket = null
+        state.onNext(WebSocketState.ERROR)
+        t.printStackTrace()
     }
 }

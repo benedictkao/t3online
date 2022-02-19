@@ -3,7 +3,7 @@ package com.benkao.tictactoe.di.modules
 import androidx.lifecycle.ViewModel
 import com.benkao.tictactoe.ui.login.LoginViewModel
 import com.benkao.tictactoe.di.core.ViewModelKey
-import com.benkao.tictactoe.network.retrofit.api.ReqresApi
+import com.benkao.tictactoe.network.retrofit.api.LoginApi
 import com.benkao.tictactoe.network.retrofit.service.LoginService
 import com.benkao.tictactoe.network.retrofit.service.LoginServiceImpl
 import com.benkao.tictactoe.ui.base.RxViewCollector
@@ -29,12 +29,12 @@ object LoginModule {
     }
 
     @Provides
-    fun provideReqresApi(retrofit: Retrofit): ReqresApi {
-        return retrofit.create(ReqresApi::class.java)
+    fun provideLoginApi(retrofit: Retrofit): LoginApi {
+        return retrofit.create(LoginApi::class.java)
     }
 
     @Provides
-    fun provideLoginService(reqresApi: ReqresApi): LoginService {
-        return LoginServiceImpl(reqresApi)
+    fun provideLoginService(loginApi: LoginApi): LoginService {
+        return LoginServiceImpl(loginApi)
     }
 }

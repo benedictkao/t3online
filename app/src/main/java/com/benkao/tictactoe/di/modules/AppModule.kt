@@ -25,7 +25,7 @@ object AppModule {
     @Provides
     fun provideRetrofit(): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(NetworkUtils.BASE_HTTP_URL)
+            .baseUrl(NetworkUtils.HTTP_BASE_URL)
             .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
             .addConverterFactory(MoshiConverterFactory.create())
             .build()

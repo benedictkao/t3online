@@ -51,10 +51,11 @@ class LoginViewModel(
         .flatMapCompletable {
             getInputError(it)
                 ?.run { showErrorMessage(views.errorText, this) }
-                ?: service.postLogin(1)
+                ?: service.postLogin()
                     .observeOn(AndroidSchedulers.mainThread())
                     .doOnSuccess {
                         //navigate to home screen
+                        println("Login id is: $it")
                         val activityIntent = ActivityIntent.Builder()
                             .clazz(HomeActivity::class)
                             .build()

@@ -4,6 +4,7 @@ import com.benkao.annotations.InitToClear
 import com.benkao.annotations.LifecycleViewModel
 import com.benkao.annotations.StartToStop
 import com.benkao.tictactoe.R
+import com.benkao.tictactoe.network.retrofit.service.PlayerAvailService
 import com.benkao.tictactoe.network.websocket.WebSocketProvider
 import com.benkao.tictactoe.network.websocket.WebSocketState
 import com.benkao.tictactoe.ui.base.LifecycleStreams
@@ -16,6 +17,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 @LifecycleViewModel
 class HomeViewModel(
     private val webSocketProvider: WebSocketProvider,
+    private val service: PlayerAvailService,
     viewCollector: RxViewCollector
 ): RxViewModel(viewCollector) {
 
@@ -26,7 +28,10 @@ class HomeViewModel(
 
     @InitToClear
     fun connectToWebSocket(): Completable =
-        Completable.fromAction { webSocketProvider.connect() }
+        Completable.fromAction {
+            println("Connecting to server...")
+            webSocketProvider.connect()
+        }
             .subscribeOn(Schedulers.io())
 
     @StartToStop
@@ -34,10 +39,19 @@ class HomeViewModel(
         webSocketProvider.observeState()
             .doOnNext {
                 when (it) {
-                    WebSocketState.CONNECTING -> println("Connecting to t3 server...")
-                    WebSocketState.CONNECTED -> println("Connected to t3 server")
-                    WebSocketState.DISCONNECTED -> println("Disconnected from server")
+                    WebSocketState.OPEN -> println("Connected to t3 server")
+                    WebSocketState.CLOSED -> println("Disconnected from server")
+                    WebSocketState.ERROR -> println("Failed connecting to t3 server")
                 }
             }
             .ignoreElements()
+
+    @StartToStop
+    fun observeFindGame(): Completable =
+        playButton.flatMapCompletable {
+            it.observeClick()
+                .switchMapCompletable {
+                    service.findGame()
+                }
+        }
 }

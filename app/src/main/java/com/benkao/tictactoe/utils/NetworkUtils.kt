@@ -1,8 +1,8 @@
 package com.benkao.tictactoe.utils
 
 object NetworkUtils {
-    const val BASE_HTTP_URL = "https://reqres.in/"
+    const val IP_ADDRESS = "192.168.1.216:8080"
 
-    const val ECHO_SOCKET_URL = "ws://echo.websocket.events/"
-    const val SOCKET_URL = "ws://192.168.1.216:8080/socket"
+    const val SOCKET_URL = "ws://$IP_ADDRESS/socket"
+    const val HTTP_BASE_URL = "http://$IP_ADDRESS"
 }
