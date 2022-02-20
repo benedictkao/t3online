@@ -6,6 +6,7 @@ import com.benkao.tictactoe.di.core.ViewModelKey
 import com.benkao.tictactoe.network.retrofit.api.LoginApi
 import com.benkao.tictactoe.network.retrofit.service.LoginService
 import com.benkao.tictactoe.network.retrofit.service.LoginServiceImpl
+import com.benkao.tictactoe.storage.UserPreferences
 import com.benkao.tictactoe.ui.base.RxViewCollector
 import dagger.Module
 import dagger.Provides
@@ -20,10 +21,12 @@ object LoginModule {
     @ViewModelKey(LoginViewModel::class)
     fun provideLoginViewModel(
         service: LoginService,
+        userPreferences: UserPreferences,
         viewCollector: RxViewCollector
     ): ViewModel {
         return LoginViewModel(
             service,
+            userPreferences,
             viewCollector
         )
     }

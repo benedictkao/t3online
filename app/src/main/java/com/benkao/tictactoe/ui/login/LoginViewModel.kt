@@ -6,6 +6,7 @@ import com.benkao.annotations.StartToStop
 import com.benkao.tictactoe.R
 import com.benkao.tictactoe.network.retrofit.model.LoginRequest
 import com.benkao.tictactoe.network.retrofit.service.LoginService
+import com.benkao.tictactoe.storage.UserPreferences
 import com.benkao.tictactoe.ui.base.*
 import com.benkao.tictactoe.ui.home.HomeActivity
 import com.benkao.tictactoe.utils.StringUtils
@@ -19,6 +20,7 @@ import java.net.SocketTimeoutException
 @LifecycleViewModel
 class LoginViewModel(
     private val service: LoginService,
+    private val userPreferences: UserPreferences,
     viewCollector: RxViewCollector
 ): RxViewModel(viewCollector) {
 
@@ -64,10 +66,7 @@ class LoginViewModel(
                 } }
                 ?: Completable.mergeArray(
                     attemptLogin(),
-                    Completable.fromAction{
-                        showLoadingUi(views, true)
-                    }
-
+                    Completable.fromAction{ showLoadingUi(views, true) }
                 )
                     .doOnError {
                         showLoadingUi(views, false)
@@ -95,16 +94,16 @@ class LoginViewModel(
 
     private fun attemptLogin(): Completable =
         service.login()
+            .doOnSuccess { Timber.d("Login id is: $it") }
+            .flatMapCompletable { userPreferences.setUserId(it) }
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnSuccess {
+            .doOnComplete {
                 //navigate to home screen
-                Timber.d("Login id is: $it")
                 val activityIntent = ActivityIntent.Builder()
                     .clazz(HomeActivity::class)
                     .build()
                 startActivity(activityIntent)
             }
-            .ignoreElement()
 
     private fun showErrorMessage(
         errorTV: RxTextView,
