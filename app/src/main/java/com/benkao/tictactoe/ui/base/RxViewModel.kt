@@ -1,7 +1,5 @@
 package com.benkao.tictactoe.ui.base
 
-import android.app.Activity
-import android.content.Intent
 import androidx.lifecycle.ViewModel
 import com.benkao.tictactoe.utils.subscribeAndAddTo
 import com.benkao.tictactoe.utils.subscribeBy

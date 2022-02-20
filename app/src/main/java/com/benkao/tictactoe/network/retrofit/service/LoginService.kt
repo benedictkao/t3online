@@ -5,12 +5,12 @@ import io.reactivex.rxjava3.core.Single
 
 interface LoginService {
 
-    fun postLogin(): Single<String>
+    fun login(): Single<String>
 }
 
 class LoginServiceImpl(private val api: LoginApi): LoginService {
 
-    override fun postLogin(): Single<String> {
+    override fun login(): Single<String> {
         return api.login()
             .map { it.userId }
     }
