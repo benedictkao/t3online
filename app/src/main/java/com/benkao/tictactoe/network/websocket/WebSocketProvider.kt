@@ -3,6 +3,7 @@ package com.benkao.tictactoe.network.websocket
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 import okhttp3.*
+import timber.log.Timber
 
 interface WebSocketProvider {
 
@@ -48,22 +49,25 @@ class WebSocketProviderImpl(
     }
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
+        Timber.d("Websocket connected")
         state.onNext(WebSocketState.OPEN)
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
         // handle message
+        Timber.d("Websocket message received")
         println(text)
     }
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
         this.webSocket = null
         state.onNext(WebSocketState.CLOSED)
+        Timber.w("Websocket connection closed")
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         this.webSocket = null
         state.onNext(WebSocketState.ERROR)
-        t.printStackTrace()
+        Timber.e("Failed to connect to websocket")
     }
 }

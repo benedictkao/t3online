@@ -10,8 +10,8 @@ import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.subjects.PublishSubject
 
 abstract class RxViewModel(
-    val viewStream: RxViewStream? = null,
-    val activityNavigator: ActivityNavigator? = null
+    val activityNavigator: ActivityNavigator,
+    val viewStream: RxViewStream? = null
 ) : ViewModel() {
     open val streams: LifecycleStreams? = null
 

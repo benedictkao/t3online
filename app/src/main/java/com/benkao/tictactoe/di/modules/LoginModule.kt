@@ -23,14 +23,14 @@ object LoginModule {
     fun provideLoginViewModel(
         service: LoginService,
         userPreferences: UserPreferences,
-        viewCollector: RxViewCollector,
-        activityNavigator: ActivityNavigator
+        activityNavigator: ActivityNavigator,
+        viewCollector: RxViewCollector
     ): ViewModel {
         return LoginViewModel(
             service,
             userPreferences,
-            viewCollector,
-            activityNavigator
+            activityNavigator,
+            viewCollector
         )
     }
 

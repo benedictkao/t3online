@@ -2,12 +2,13 @@ package com.benkao.tictactoe.ui.base
 
 import android.os.Parcelable
 import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.subjects.PublishSubject
+import io.reactivex.rxjava3.subjects.BehaviorSubject
+import io.reactivex.rxjava3.subjects.Subject
 import kotlin.reflect.KClass
 
 interface ActivityNavigator {
 
-    fun find(clazz: KClass<*>): ActivityPlanner
+    fun plan(clazz: KClass<*>): ActivityPlanner
 
     fun finish()
 
@@ -16,9 +17,9 @@ interface ActivityNavigator {
 
 class ActivityNavigatorImpl: ActivityNavigator {
 
-    private val planSubject = PublishSubject.create<ActivityPlan>()
+    private val planSubject = BehaviorSubject.create<ActivityPlan>()
 
-    override fun find(clazz: KClass<*>): ActivityPlanner = ActivityPlanner(clazz, planSubject)
+    override fun plan(clazz: KClass<*>): ActivityPlanner = ActivityPlanner(clazz, planSubject)
 
     override fun finish() {
         planSubject.onNext(ActivityPlan.FINISH)
@@ -29,7 +30,7 @@ class ActivityNavigatorImpl: ActivityNavigator {
 
 class ActivityPlanner(
     private val clazz: KClass<*>,
-    private val planSubject: PublishSubject<ActivityPlan>,
+    private val planSubject: Subject<ActivityPlan>,
 ) {
 
     private var flags: Int? = null

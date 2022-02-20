@@ -18,7 +18,7 @@ import kotlin.reflect.KClass
 abstract class RxActivity: DaggerAppCompatActivity(), RxLifecycleSource {
     @Inject lateinit var providerFactory: ViewModelProviderFactory
 
-    protected abstract var layout: Int
+    protected open var layout: Int? = null
 
     private var compositeDisposable = CompositeDisposable()
     private val createSubject = BehaviorSubject.createDefault(false)
@@ -26,7 +26,7 @@ abstract class RxActivity: DaggerAppCompatActivity(), RxLifecycleSource {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(layout)
+        layout?.let { setContentView(it) }
         createSubject.onNext(true)
     }
 
@@ -51,13 +51,12 @@ abstract class RxActivity: DaggerAppCompatActivity(), RxLifecycleSource {
             .doOnNext { hideKeyboard() }
             .ignoreElements()
             .subscribeAndAddTo(compositeDisposable)
-        viewModel.activityNavigator?.let {
-            it.observePlans()
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext { executeActivityPlan(it) }
-                .ignoreElements()
-                .subscribeAndAddTo(compositeDisposable)
-        }
+        viewModel.activityNavigator
+            .observePlans()
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnNext { executeActivityPlan(it) }
+            .ignoreElements()
+            .subscribeAndAddTo(compositeDisposable)
     }
 
     private fun executeActivityPlan(activityPlan: ActivityPlan) {

@@ -7,7 +7,7 @@ import com.benkao.tictactoe.ui.base.RxActivity
 class HomeActivity: RxActivity() {
     private lateinit var viewModel: HomeViewModel
 
-    override var layout: Int = R.layout.activity_home
+    override var layout: Int? = R.layout.activity_home
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
