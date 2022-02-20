@@ -51,20 +51,25 @@ abstract class RxActivity: DaggerAppCompatActivity(), RxLifecycleSource {
             .doOnNext { hideKeyboard() }
             .ignoreElements()
             .subscribeAndAddTo(compositeDisposable)
-        viewModel.startActivityObservable
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnNext { startActivity(it) }
-            .ignoreElements()
-            .subscribeAndAddTo(compositeDisposable)
+        viewModel.activityNavigator?.let {
+            it.observePlans()
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext { executeActivityPlan(it) }
+                .ignoreElements()
+                .subscribeAndAddTo(compositeDisposable)
+        }
     }
 
-    private fun startActivity(activityIntent: ActivityIntent) {
-        activityIntent.run {
+    private fun executeActivityPlan(activityPlan: ActivityPlan) {
+        activityPlan.run {
             clazz?.let {
                 val intent = Intent(this@RxActivity, it.java)
                 flags?.let { intent.addFlags(it) }
                 data?.run { intent.putExtra(first, second) }
                 startActivity(intent)
+            }
+            if (finishCurrent) {
+                finish()
             }
         }
     }

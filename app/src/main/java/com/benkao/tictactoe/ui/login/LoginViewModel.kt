@@ -21,8 +21,9 @@ import java.net.SocketTimeoutException
 class LoginViewModel(
     private val service: LoginService,
     private val userPreferences: UserPreferences,
-    viewCollector: RxViewCollector
-): RxViewModel(viewCollector) {
+    viewCollector: RxViewCollector,
+    activityNavigator: ActivityNavigator
+): RxViewModel(viewCollector, activityNavigator) {
 
     override val streams: LifecycleStreams
         get() = LoginViewModel_LifecycleStreamsFactory.create(this)
@@ -99,10 +100,9 @@ class LoginViewModel(
             .observeOn(AndroidSchedulers.mainThread())
             .doOnComplete {
                 //navigate to home screen
-                val activityIntent = ActivityIntent.Builder()
-                    .clazz(HomeActivity::class)
-                    .build()
-                startActivity(activityIntent)
+                activityNavigator?.run {
+                    find(HomeActivity::class).start(true)
+                }
             }
 
     private fun showErrorMessage(

@@ -10,7 +10,8 @@ import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.subjects.PublishSubject
 
 abstract class RxViewModel(
-    val viewStream: RxViewStream? = null
+    val viewStream: RxViewStream? = null,
+    val activityNavigator: ActivityNavigator? = null
 ) : ViewModel() {
     open val streams: LifecycleStreams? = null
 
@@ -18,9 +19,7 @@ abstract class RxViewModel(
     private val compositeDisposable = CompositeDisposable()
     private val bindSubject = PublishSubject.create<Boolean>()
     private val hideKeyboardSubject = PublishSubject.create<Boolean>()
-    private val startActivitySubject = PublishSubject.create<ActivityIntent>()
     val hideKeyboardObservable: Observable<Boolean> = hideKeyboardSubject.hide()
-    val startActivityObservable: Observable<ActivityIntent> = startActivitySubject.hide()
 
     init {
         bindSubject.firstOrError()
@@ -57,10 +56,6 @@ abstract class RxViewModel(
      */
     protected fun hideKeyboard() {
         hideKeyboardSubject.onNext(true)
-    }
-
-    protected fun startActivity(activityIntent: ActivityIntent) {
-        startActivitySubject.onNext(activityIntent)
     }
 
     private fun observeLifecycleEvent(
