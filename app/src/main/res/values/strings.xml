@@ -8,4 +8,5 @@
     <string name="find_game_temp">Find Game</string>
     <string name="login_attempt_message">Attempting to log you in…</string>
     <string name="logout_temp">Logout</string>
+    <string name="status_temp">Status:</string>
 </resources>

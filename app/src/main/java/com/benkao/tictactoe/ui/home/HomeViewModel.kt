@@ -10,10 +10,13 @@ import com.benkao.tictactoe.network.websocket.WebSocketState
 import com.benkao.tictactoe.storage.UserPreferences
 import com.benkao.tictactoe.ui.base.*
 import com.benkao.tictactoe.ui.login.LoginActivity
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.BehaviorSubject
+import timber.log.Timber
 
 @LifecycleViewModel
 class HomeViewModel(
@@ -30,9 +33,10 @@ class HomeViewModel(
     private val closeSubject = BehaviorSubject.createDefault(false)
     private val playButton = viewCollector.addView(R.id.play_button, RxButton::class)
     private val logoutButton = viewCollector.addView(R.id.logout_button, RxButton::class)
+    private val statusText = viewCollector.addView(R.id.status_text, RxTextView::class)
 
     @InitToClear
-    fun connectToWebSocket(): Completable =
+    fun connectOrDisconnect(): Completable =
         Observable.combineLatest(
             webSocketProvider.observeConnection(),
             closeSubject.distinctUntilChanged()
@@ -48,18 +52,35 @@ class HomeViewModel(
 
     @StartToStop
     fun observeConnectionState(): Completable =
-        webSocketProvider.observeState()
-            .doOnNext {
-                when (it) {
-                    WebSocketState.OPEN -> println("Connected to t3 server")
-                    WebSocketState.CLOSED -> println("Disconnected from server")
-                    WebSocketState.ERROR -> println("Failed connecting to t3 server")
-                }
+        statusText
+            .flatMapCompletable { textView ->
+                webSocketProvider.observeState()
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .doOnNext { state ->
+                        textView.setText(
+                            when (state) {
+                                WebSocketState.CONNECTING -> "CONNECTING"
+                                WebSocketState.OPEN -> "CONNECTED"
+                                WebSocketState.CLOSED -> "DISCONNECTED"
+                                WebSocketState.ERROR -> "ERROR"
+                                else -> "DEFAULT"
+                            }
+                        )
+                    }
+                    .ignoreElements()
             }
-            .ignoreElements()
 
     @InitToClear
-    fun observeFindGame(): Completable =
+    fun observeFindButtonState(): Completable =
+        playButton.flatMapCompletable { button ->
+            webSocketProvider.observeConnection()
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext { button.setEnabled(it) }
+                .ignoreElements()
+        }
+
+    @InitToClear
+    fun observeFindGameClick(): Completable =
         playButton.flatMapCompletable {
             it.observeClick()
                 .switchMapCompletable {

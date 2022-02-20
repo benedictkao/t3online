@@ -30,21 +30,17 @@ class LoginViewModel(
 
     private val usernameText = viewCollector.addView(R.id.input_email_text, RxEditText::class)
     private val passwordText = viewCollector.addView(R.id.input_password_text, RxEditText::class)
-    private val loginLayout = viewCollector.addView(R.id.login_layout)
-    private val loginButton = viewCollector.addView(R.id.login_button, RxButton::class)
-    private val errorText = viewCollector.addView(R.id.login_error_text, RxTextView::class)
-    private val loadText = viewCollector.addView(R.id.loading_text, RxTextView::class)
+    private val loginButtonObs = viewCollector.addView(R.id.login_button, RxButton::class)
+    private val resultTextObs = viewCollector.addView(R.id.login_error_text, RxTextView::class)
 
     @InitToClear
     fun observeLoginClick(): Completable = Single.zip(
         usernameText,
         passwordText,
-        loginLayout,
-        loginButton,
-        errorText,
-        loadText
-    ) { userName, password, layout, button, error, loadText ->
-        LoginViews(userName, password, layout, button, error, loadText) }
+        loginButtonObs,
+        resultTextObs,
+    ) { userName, password, button, error ->
+        LoginViews(userName, password, button, error) }
         .flatMapCompletable { views ->
             views.loginButton.observeClick()
                 .switchMapCompletable {
@@ -56,14 +52,14 @@ class LoginViewModel(
     private fun handleButtonClick(
         views: LoginViews
     ): Completable = Single.zip(
-        views.username.observeText().first(StringUtils.EMPTY),
-        views.password.observeText().first(StringUtils.EMPTY))
+        views.usernameText.observeText().first(StringUtils.EMPTY),
+        views.passwordText.observeText().first(StringUtils.EMPTY))
     { userName, password -> LoginRequest(userName, password) }
         .doOnSuccess { hideKeyboard() }
         .flatMapCompletable { loginRequest ->
             getInputError(loginRequest)
                 ?.run { Completable.fromAction {
-                    showErrorMessage(views.errorText, this)
+                    showErrorMessage(views.resultText, this)
                 } }
                 ?: Completable.mergeArray(
                     attemptLogin(),
@@ -73,7 +69,7 @@ class LoginViewModel(
                         showLoadingUi(views, false)
                         Timber.e(it.message)
                         showErrorMessage(
-                            views.errorText,
+                            views.resultText,
                             when (it) {
                                 is SocketTimeoutException -> "Login timed out"
                                 else -> "Login failed!"
@@ -85,12 +81,17 @@ class LoginViewModel(
 
     private fun showLoadingUi(
         views: LoginViews,
-        show: Boolean
+        loading: Boolean
     ) {
-        views.username.setEnabled(!show)
-        views.password.setEnabled(!show)
-        views.loginLayout.setVisible(!show)
-        views.loadText.setVisible(show)
+        views.usernameText.setEnabled(!loading)
+        views.passwordText.setEnabled(!loading)
+        views.loginButton.setEnabled(!loading)
+        views.resultText.run {
+            setVisible(loading)
+            if (loading) {
+                setText("Attempting to log in...")
+            }
+        }
     }
 
     private fun attemptLogin(): Completable =
@@ -126,7 +127,7 @@ class LoginViewModel(
         Single.zip(
             usernameText,
             passwordText,
-            errorText
+            resultTextObs
         ) { username, password, error -> Triple(username, password, error) }
             .flatMapCompletable { texts ->
                 Observable.mergeArray(
@@ -140,10 +141,8 @@ class LoginViewModel(
 }
 
 data class LoginViews(
-    val username: RxEditText,
-    val password: RxEditText,
-    val loginLayout: RxView,
+    val usernameText: RxEditText,
+    val passwordText: RxEditText,
     val loginButton: RxButton,
-    val errorText: RxTextView,
-    val loadText: RxTextView
+    val resultText: RxTextView
 )

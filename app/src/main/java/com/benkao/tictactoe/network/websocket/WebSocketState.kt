@@ -4,6 +4,7 @@ import androidx.annotation.IntDef
 
 @IntDef(
     WebSocketState.CLOSED,
+    WebSocketState.CONNECTING,
     WebSocketState.OPEN,
     WebSocketState.ERROR
 )
@@ -11,7 +12,8 @@ import androidx.annotation.IntDef
 annotation class WebSocketState {
     companion object {
         const val CLOSED = 0
-        const val OPEN = 1
-        const val ERROR = 2
+        const val CONNECTING = 1
+        const val OPEN = 2
+        const val ERROR = 3
     }
 }

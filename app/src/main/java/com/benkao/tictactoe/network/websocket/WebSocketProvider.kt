@@ -32,11 +32,12 @@ class WebSocketProviderImpl(
     override fun observeState(): Observable<Int> = state.hide()
 
     override fun observeConnection(): Observable<Boolean> =
-        state.map { it == WebSocketState.OPEN }
-            .distinctUntilChanged()
+        state.filter { it != WebSocketState.CONNECTING }
+            .map { it == WebSocketState.OPEN }
 
     override fun connect() {
         webSocket ?: let {
+            state.onNext(WebSocketState.CONNECTING)
             webSocket = client.newWebSocket(request, this)
         }
     }
