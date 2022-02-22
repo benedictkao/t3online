@@ -1,6 +1,7 @@
 package com.benkao.tictactoe.ui.base
 
 import androidx.lifecycle.ViewModel
+import com.benkao.tictactoe.utils.completeOnError
 import com.benkao.tictactoe.utils.subscribeAndAddTo
 import com.benkao.tictactoe.utils.subscribeBy
 import io.reactivex.rxjava3.core.Completable
@@ -26,7 +27,7 @@ abstract class RxViewModel(
             .flatMapCompletable {
                 streams?.run {
                     Observable.fromIterable(initToClear)
-                        .flatMapCompletable { it }
+                        .flatMapCompletable { it.completeOnError() }
                 } ?: Completable.complete()
             }.subscribeAndAddTo(compositeDisposable)
     }
@@ -66,7 +67,7 @@ abstract class RxViewModel(
             .switchMapCompletable { event ->
                 if (event) {
                     Observable.fromIterable(completables)
-                        .flatMapCompletable { it }
+                        .flatMapCompletable { it.completeOnError() }
                 } else {
                     Completable.complete()
                 }

@@ -21,3 +21,7 @@ fun Completable.subscribeAndAddTo(
 ) {
     compositeDisposable.add(this.subscribe(onComplete, onError))
 }
+
+fun Completable.completeOnError(): Completable {
+    return this.doOnError { Timber.e(it.message) }.onErrorComplete()
+}
