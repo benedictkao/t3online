@@ -14,11 +14,13 @@ import com.benkao.tictactoe.utils.NetworkUtils
 import com.benkao.tictactoe.utils.PreferencesUtils
 import dagger.Module
 import dagger.Provides
+import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
@@ -36,9 +38,10 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideRetrofit(): Retrofit {
+    fun provideRetrofit(client: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl(NetworkUtils.HTTP_BASE_URL)
+            .client(client)
             .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
@@ -53,9 +56,14 @@ object AppModule {
         return WebSocketProviderImpl(client, request)
     }
 
+    @Singleton
     @Provides
     fun provideOkHttpClient(): OkHttpClient {
-        return OkHttpClient()
+        val connectionPool = ConnectionPool(10, 5L, TimeUnit.MINUTES)
+
+        return OkHttpClient.Builder()
+            .connectionPool(connectionPool)
+            .build()
     }
 
     @Provides
