@@ -6,7 +6,7 @@ import io.reactivex.rxjava3.subjects.BehaviorSubject
 import io.reactivex.rxjava3.subjects.Subject
 import kotlin.reflect.KClass
 
-interface ActivityNavigator {
+interface ScreenNavigator {
 
     fun plan(clazz: KClass<*>): ActivityPlanner
 
@@ -15,7 +15,7 @@ interface ActivityNavigator {
     fun observePlans(): Observable<ActivityPlan>
 }
 
-class ActivityNavigatorImpl: ActivityNavigator {
+class ScreenNavigatorImpl: ScreenNavigator {
 
     private val planSubject = BehaviorSubject.create<ActivityPlan>()
 
@@ -34,30 +34,30 @@ class ActivityPlanner(
 ) {
 
     private var flags: Int? = null
-    private var data: Pair<String,Parcelable>? = null
+    private var dataMap = mutableMapOf<String,Parcelable>()
 
     fun setFlags(flags: Int): ActivityPlanner {
         this.flags = flags
         return this
     }
 
-    fun setData(key: String, data: Parcelable): ActivityPlanner {
-        this.data = Pair(key, data)
+    fun addData(key: String, data: Parcelable): ActivityPlanner {
+        this.dataMap[key] = data
         return this
     }
 
     fun start(finishCurrent: Boolean) {
-        planSubject.onNext(ActivityPlan(clazz, flags, data, finishCurrent))
+        planSubject.onNext(ActivityPlan(clazz, flags, dataMap, finishCurrent))
     }
 }
 
 data class ActivityPlan(
     val clazz: KClass<*>?,
     val flags: Int?,
-    val data: Pair<String,Parcelable>?,
+    val data: Map<String,Parcelable>,
     val finishCurrent: Boolean
 ) {
     companion object {
-        val FINISH = ActivityPlan(null, null, null, true)
+        val FINISH = ActivityPlan(null, null, emptyMap(), true)
     }
 }

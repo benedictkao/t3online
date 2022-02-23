@@ -37,7 +37,8 @@ abstract class RxActivity: DaggerAppCompatActivity(), RxLifecycleSource {
         val viewModel = ViewModelProvider(this, providerFactory)
             .get(clazz.java)
 
-        viewModel.observeActivityLifecycle(this)
+        viewModel.observeLifecycleSource(this)
+        intent.extras?.let { viewModel.setData(it) }
         observeViewModel(viewModel)
 
         bindViews(viewModel.viewStream)
@@ -51,7 +52,7 @@ abstract class RxActivity: DaggerAppCompatActivity(), RxLifecycleSource {
             .doOnNext { hideKeyboard() }
             .ignoreElements()
             .subscribeAndAddTo(compositeDisposable)
-        viewModel.activityNavigator
+        viewModel.screenNavigator
             .observePlans()
             .observeOn(AndroidSchedulers.mainThread())
             .doOnNext { executeActivityPlan(it) }
@@ -63,8 +64,8 @@ abstract class RxActivity: DaggerAppCompatActivity(), RxLifecycleSource {
         activityPlan.run {
             clazz?.let {
                 val intent = Intent(this@RxActivity, it.java)
-                flags?.let { intent.addFlags(it) }
-                data?.run { intent.putExtra(first, second) }
+                flags?.let { flags -> intent.addFlags(flags) }
+                data.forEach { (key, value) -> intent.putExtra(key, value) }
                 startActivity(intent)
             }
             if (finishCurrent) {
