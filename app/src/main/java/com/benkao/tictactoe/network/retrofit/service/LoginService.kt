@@ -12,6 +12,6 @@ class LoginServiceImpl(private val api: LoginApi): LoginService {
 
     override fun login(): Single<String> {
         return api.login()
-            .map { it.userId }
+            .map { it.id }
     }
 }

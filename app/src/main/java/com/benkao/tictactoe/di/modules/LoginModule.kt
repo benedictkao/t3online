@@ -7,7 +7,7 @@ import com.benkao.tictactoe.network.retrofit.api.LoginApi
 import com.benkao.tictactoe.network.retrofit.service.LoginService
 import com.benkao.tictactoe.network.retrofit.service.LoginServiceImpl
 import com.benkao.tictactoe.storage.UserPreferences
-import com.benkao.tictactoe.ui.base.ActivityNavigator
+import com.benkao.tictactoe.ui.base.ScreenNavigator
 import com.benkao.tictactoe.ui.base.RxViewCollector
 import dagger.Module
 import dagger.Provides
@@ -23,13 +23,13 @@ object LoginModule {
     fun provideLoginViewModel(
         service: LoginService,
         userPreferences: UserPreferences,
-        activityNavigator: ActivityNavigator,
+        screenNavigator: ScreenNavigator,
         viewCollector: RxViewCollector
     ): ViewModel {
         return LoginViewModel(
             service,
             userPreferences,
-            activityNavigator,
+            screenNavigator,
             viewCollector
         )
     }

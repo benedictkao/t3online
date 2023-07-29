@@ -7,8 +7,8 @@ import androidx.datastore.rxjava3.RxDataStore
 import com.benkao.tictactoe.network.websocket.WebSocketProvider
 import com.benkao.tictactoe.network.websocket.WebSocketProviderImpl
 import com.benkao.tictactoe.storage.UserPreferences
-import com.benkao.tictactoe.ui.base.ActivityNavigator
-import com.benkao.tictactoe.ui.base.ActivityNavigatorImpl
+import com.benkao.tictactoe.ui.base.ScreenNavigator
+import com.benkao.tictactoe.ui.base.ScreenNavigatorImpl
 import com.benkao.tictactoe.ui.base.RxViewCollector
 import com.benkao.tictactoe.utils.NetworkUtils
 import com.benkao.tictactoe.utils.PreferencesUtils
@@ -32,8 +32,8 @@ object AppModule {
     }
 
     @Provides
-    fun provideActivityNavigator(): ActivityNavigator {
-        return ActivityNavigatorImpl()
+    fun provideScreenNavigator(): ScreenNavigator {
+        return ScreenNavigatorImpl()
     }
 
     @Singleton

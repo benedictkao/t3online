@@ -1,11 +1,10 @@
-package com.benkao.tictactoe.ui.home
+package com.benkao.tictactoe.ui.main
 
 import android.os.Bundle
 import com.benkao.tictactoe.R
 import com.benkao.tictactoe.ui.base.RxActivity
 
 class HomeActivity: RxActivity() {
-    private lateinit var viewModel: HomeViewModel
 
     override var layout: Int? = R.layout.activity_home
 

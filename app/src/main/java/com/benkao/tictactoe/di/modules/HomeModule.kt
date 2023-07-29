@@ -7,9 +7,9 @@ import com.benkao.tictactoe.network.retrofit.service.PlayerAvailService
 import com.benkao.tictactoe.network.retrofit.service.PlayerAvailServiceImpl
 import com.benkao.tictactoe.network.websocket.WebSocketProvider
 import com.benkao.tictactoe.storage.UserPreferences
-import com.benkao.tictactoe.ui.base.ActivityNavigator
+import com.benkao.tictactoe.ui.base.ScreenNavigator
 import com.benkao.tictactoe.ui.base.RxViewCollector
-import com.benkao.tictactoe.ui.home.HomeViewModel
+import com.benkao.tictactoe.ui.main.HomeViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
@@ -25,14 +25,14 @@ object HomeModule {
         userPreferences: UserPreferences,
         webSocketProvider: WebSocketProvider,
         playerAvailService: PlayerAvailService,
-        activityNavigator: ActivityNavigator,
+        screenNavigator: ScreenNavigator,
         viewCollector: RxViewCollector
     ): ViewModel {
         return HomeViewModel(
             userPreferences,
             webSocketProvider,
             playerAvailService,
-            activityNavigator,
+            screenNavigator,
             viewCollector
         )
     }

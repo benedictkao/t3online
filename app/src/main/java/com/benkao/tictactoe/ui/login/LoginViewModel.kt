@@ -8,7 +8,7 @@ import com.benkao.tictactoe.network.retrofit.model.LoginRequest
 import com.benkao.tictactoe.network.retrofit.service.LoginService
 import com.benkao.tictactoe.storage.UserPreferences
 import com.benkao.tictactoe.ui.base.*
-import com.benkao.tictactoe.ui.home.HomeActivity
+import com.benkao.tictactoe.ui.main.HomeActivity
 import com.benkao.tictactoe.utils.StringUtils
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Completable
@@ -21,9 +21,9 @@ import java.net.SocketTimeoutException
 class LoginViewModel(
     private val service: LoginService,
     private val userPreferences: UserPreferences,
-    activityNavigator: ActivityNavigator,
+    screenNavigator: ScreenNavigator,
     viewCollector: RxViewCollector
-): RxViewModel(activityNavigator, viewCollector) {
+): RxViewModel(screenNavigator, viewCollector) {
 
     override val streams: LifecycleStreams
         get() = LoginViewModel_LifecycleStreamsFactory.create(this)
@@ -101,8 +101,8 @@ class LoginViewModel(
             .observeOn(AndroidSchedulers.mainThread())
             .doOnComplete {
                 //navigate to home screen
-                activityNavigator
-                    .plan(HomeActivity::class)
+                screenNavigator
+                    .planActivity(HomeActivity::class)
                     .start(true)
             }
 

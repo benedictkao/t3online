@@ -3,7 +3,7 @@ package com.benkao.tictactoe.di.core
 import com.benkao.tictactoe.di.modules.HomeModule
 import com.benkao.tictactoe.di.modules.LoginModule
 import com.benkao.tictactoe.di.modules.SplashModule
-import com.benkao.tictactoe.ui.home.HomeActivity
+import com.benkao.tictactoe.ui.main.HomeActivity
 import com.benkao.tictactoe.ui.login.LoginActivity
 import com.benkao.tictactoe.ui.splash.SplashActivity
 import dagger.Module

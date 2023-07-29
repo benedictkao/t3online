@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    tools:context=".ui.home.HomeActivity">
+    tools:context=".ui.main.HomeActivity">
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/play_button"

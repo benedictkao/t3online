@@ -8,7 +8,7 @@ import kotlin.reflect.KClass
 
 interface ScreenNavigator {
 
-    fun plan(clazz: KClass<*>): ActivityPlanner
+    fun planActivity(clazz: KClass<*>): ActivityPlanner
 
     fun finish()
 
@@ -19,7 +19,7 @@ class ScreenNavigatorImpl: ScreenNavigator {
 
     private val planSubject = BehaviorSubject.create<ActivityPlan>()
 
-    override fun plan(clazz: KClass<*>): ActivityPlanner = ActivityPlanner(clazz, planSubject)
+    override fun planActivity(clazz: KClass<*>): ActivityPlanner = ActivityPlanner(clazz, planSubject)
 
     override fun finish() {
         planSubject.onNext(ActivityPlan.FINISH)
